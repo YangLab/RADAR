@@ -7,7 +7,7 @@ RADAR can be conveniently applied to identify RNA-editing from RNA-seq data with
 * Manhattan plots are further used to illustrate RNA editing ratios of selected types of RNA-editing events, such as C-to-U or A-to-G.
 
 ## Schema
-<img src="https://github.com/xiongyichun/RADAR/blob/master/docs/RADAR.jpg"  alt="RADAR pipeline" />
+<img src="https://github.com/YangLab/RADAR/blob/master/docs/RADAR.jpg"  alt="RADAR pipeline" />
 
 ## Installation requirements
 RADAR can be run directly without setup process after downloaded and unzipped, only if tools it depends on have been installed:
@@ -130,4 +130,4 @@ COMMAND: `./RADAR Manhattan_plot -i "outdir_of_read_mapping_and_RNA_editing_call
 Wang X#, Ding C#, Yu W#, Xiong YC#, He S#, Yang B#, Wang Y, Li J, Lu Z, Zhu W, Wu J, Wei J, Huang X, Liu Z*, Yang L* and Chen J*. Cas12a base editors induce efficient and specific editing with low DNA damage response. in revision.
 
 ## License
-Copyright (C) 2020 YangLab. [Licensed GPLv3](https://github.com/xiongyichun/RADAR/blob/master/LICENSE) for open source use or contact YangLab (yanglab@@picb.ac.cn) for commercial use.
+Copyright (C) 2020 YangLab. [Licensed GPLv3](https://github.com/YangLab/RADAR/blob/master/LICENSE) for open source use or contact YangLab (yanglab@@picb.ac.cn) for commercial use.
