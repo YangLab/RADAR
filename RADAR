@@ -1,0 +1,446 @@
+#!/usr/bin/sh
+
+#fq0=""
+#fq1=""
+#fq2=""
+#stranded=false
+#thread=10
+#outdir="./"
+#outname=""
+#genome_build_version=""
+MYDIR=`dirname $0`
+
+function usage(){
+    echo "USAGE: 
+	* ./RADAR read_mapping_and_RNA_editing_calling -h
+	* ./RADAR histogram -h 
+	* ./RADAR Manhattan_plot -h
+
+Detail information was available at https://github.com/YangLab/RADAR.
+	"
+}
+
+if [[ $# -lt 1 || "$@" == "-h" || "$@" == "--help" || "$@" == "-help"  ]];then
+    usage
+    exit 1
+fi
+
+read_mapping_and_RNA_editing_calling(){
+
+echo ${MYDIR}
+
+	if [[ $# -lt 1 ]];then  
+    		usage_read_mapping_and_RNA_editing_calling
+    		exit 1  
+	fi 
+
+        GETOPT_ARGS=`getopt  -o s:1:2:t:o:n:h  -al single:,fq1:,fq2:,stranded:,thread:,outdir:,name:,help -- "$@"`
+	echo "Options: "${GETOPT_ARGS}
+
+        fq0=""
+        fq1=""
+        fq2=""
+        stranded=""
+        thread=10
+        outdir=""
+        outname=""
+
+        eval set -- "$GETOPT_ARGS"
+        while [ -n "$1" ]
+        do
+                case "$1" in
+                        -s|--single | -single) fq0=$2; shift 2;;
+                        -1|--fq1 | -fq1) fq1=$2; shift 2;;
+                        -2|--fq2 | -fq2) fq2=$2; shift 2;;
+                        --stranded | -stranded) stranded=$2; shift 2;;
+                        -t|--thread | -thread) thread=$2; shift 2;;
+                        -o|--outdir | -outdir) outdir=$2; shift 2;;
+                        -n|--name | -name) outname=$2; shift 2;;
+			-h|--help | -help) usage_read_mapping_and_RNA_editing_calling; exit 1;;
+                        --) break ;;
+                        *) echo $1,$2, usage_read_mapping_and_RNA_editing_calling; break ;;
+                esac
+        done
+
+	if [[ -z "$fq0" && ( -z "$fq1" || -z "$fq2" ) ]];then 
+	#	if [[ -z "$fq1" || -z "$fq2"  ]];then	
+			echo "ERROR: Please input fasta file with option -s for single-end data, option -1 and -2 for paired-end data."
+			exit 1
+	#	fi
+	fi
+
+	if [[ -z "$stranded"   ]];then
+		echo "ERROR: Please specify the if the RNA-seq data is stranded or not (value: true/false). "
+		exit 1
+	fi
+	if [[ -z "$outdir"   ]];then
+		echo "ERROR: Please specify the output directory of the results."
+		exit 1
+	fi
+        if [[ -z "$outname"   ]];then
+                echo "ERROR: Please specify the prefix of file name for the results."
+		exit 1
+        fi	
+	
+	genome_build_version=""
+	rDNA_index_bwa_mem=""
+        genome_index_hisat2=""
+        genome_index_bwa_mem=""
+        genome_index_blat=""
+        genome_fasta=""
+	dbSNP_all=""
+        SNP_dbSNP_divided_by_chromosome=""
+        SNP_1000Genome_divided_by_chromosome=""
+        SNP_EVS_divided_by_chromosome=""
+	#genome_index_gatk=""
+	
+	annotation_Alu=""
+	annotation_Repetitive_non_Alu=""
+	annotation_All_repetitive=""
+	annotation_RepeatMasker_simple_repeats=""
+        annotation_splice_sites=""
+	annotation_intronic_4site=""
+	annotation_gene_transcribed_strands=""
+
+	para=`cat ${MYDIR}/RADAR.conf | grep -v '##' | grep -v "^$" `
+	while read line
+	do
+		name=`echo $line | awk -F '=' '{print $1}' `
+		value=`echo $line | awk -F '=' '{print $2}' `
+		case "$name" in
+			genome_build_version) genome_build_version=${value};;
+		        rDNA_index_bwa_mem) rDNA_index_bwa_mem=${value};; 
+		        genome_index_hisat2) genome_index_hisat2=${value};; 
+		        genome_index_bwa_mem) genome_index_bwa_mem=${value};; 
+		        genome_index_blat) genome_index_blat=${value};; 
+		        genome_fasta) genome_fasta=${value};; 
+		        dbSNP_all) dbSNP_all=${value};; 
+		        SNP_dbSNP_divided_by_chromosome) SNP_dbSNP_divided_by_chromosome=${value};; 
+		        SNP_1000Genome_divided_by_chromosome) SNP_1000Genome_divided_by_chromosome=${value};; 
+		        SNP_EVS_divided_by_chromosome) SNP_EVS_divided_by_chromosome=${value};; 
+		        annotation_Alu) annotation_Alu=${value};;
+		        annotation_Repetitive_non_Alu) annotation_Repetitive_non_Alu=${value};; 
+		        annotation_All_repetitive) annotation_All_repetitive=${value};; 
+		        annotation_RepeatMasker_simple_repeats) annotation_RepeatMasker_simple_repeats=${value};; 
+                        annotation_splice_sites) annotation_splice_sites=${value};;
+		        annotation_intronic_4site) annotation_intronic_4site=${value};; 
+		        annotation_gene_transcribed_strands) annotation_gene_transcribed_strands=${value};; 
+			
+		esac
+		#eval echo '$'{"$name"}
+	done <<< "${para}"
+
+        if [[ -z "$genome_build_version"   ]];then
+                echo "ERROR: Please input the genome build version of the reference genome."
+                exit 1
+        fi
+        if [[ -z "$rDNA_index_bwa_mem"   ]];then
+                echo "ERROR: Please specify full path to the ribosomal DNA (rDNA) sequence index for BWA-MEM in RADAR.conf."
+		exit 1
+        fi
+        if [[ -z "$genome_index_hisat2"   ]];then
+                echo "ERROR: Please specify full path to the reference genome sequence index for HISAT2 in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$genome_index_bwa_mem"   ]];then
+                echo "ERROR: Please specify full path to the reference genome sequence index for BWA-MEM in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$genome_index_blat"   ]];then
+                echo "ERROR: Please specify full path to the reference genome sequence index for BLAT in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$genome_fasta"   ]];then
+                echo "ERROR: Please specify full path to the reference genome in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$dbSNP_all"   ]];then
+                echo "ERROR: Please specify full path to the file of NCBI dbSNP in RADAR.conf, and index for the dbSNP.vcf would be required too, which can be created by 'gatk IndexFeatureFile dbSNP.vcf'."
+                exit 1
+        fi
+        if [[ -z "$SNP_dbSNP_divided_by_chromosome"   ]];then
+                echo "ERROR: Please specify full path to the directory of NCBI dbSNP divided by chromosome in RADAR.conf."
+                exit 1
+        fi	
+        if [[ -z "$SNP_1000Genome_divided_by_chromosome"   ]];then
+                echo "ERROR: Please specify full path to the directory of SNP from The 1000 Genomes Project divided by chromosome in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$SNP_EVS_divided_by_chromosome"   ]];then
+                echo "ERROR: Please specify full path to the directory of SNP from The University of Washington Exome Sequencing Project divided by chromosome in RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_Alu"   ]];then
+                echo "ERROR: Please specify full path to the annotation of Alu in BED format within RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_Repetitive_non_Alu"   ]];then
+                echo "ERROR: Please specify full path to the annotation of Repetitive non-Alu in BED format within RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_All_repetitive"   ]];then
+                echo "ERROR: Please specify full path to the annotation of Repetitive region in BED format within RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_RepeatMasker_simple_repeats"   ]];then
+                echo "ERROR: Please specify full path to the annotation of simple repeats from RepeatMasker in BED format within RADAR.conf."
+                exit 1
+        fi
+	if [[ -z "$annotation_intronic_4site"   ]];then
+                echo "ERROR: Please specify full path to the annotation of 4 bp flanking splice junctions in BED format within RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_splice_sites"   ]];then
+                echo "Error: Please specify full path to the annotation of splice sites in BED format within RADAR.conf."
+                exit 1
+        fi
+        if [[ -z "$annotation_gene_transcribed_strands"   ]];then
+                echo "ERROR: Please specify full path to the annotation of transcribed strands of genes in BED format within RADAR.conf."
+                exit 1
+        fi
+
+	index_dbSNP_all=${dbSNP_all}.idx
+	if [[ ! -f "$index_dbSNP_all"  ]];then
+		echo "ERROR: The GATK index for ${dbSNP_all} is not exist or not in the same directory with vcf file of NCBI dbSNP. Please construct it by \"gatk IndexFeatureFile -F ${dbSNP_all}\""
+		exit 1
+	fi
+	index_genome_fasta_of_gatk=` echo "${genome_fasta}" | awk -F '.' 'OFS="." {$NF="";print $0"dict"}' `
+        if [[ ! -f "$index_genome_fasta_of_gatk"  ]];then
+                echo "ERROR: The sequence dictionary of GATK for ${genome_fasta} is not exist or not in the same directory with fasta file of reference genome. Please construct it by \"gatk CreateSequenceDictionary -R ${genome_fasta}\""
+                exit 1
+        fi
+
+	echo "NOTICE: Start read mapping and RNA-editing calling."
+        if [[ -n "$fq0"   ]];then
+		bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh RNA_Editing_Calling_Pipeline_HISAT2_BWA_followed_by_GATK_HaplotypeCaller -s ${fq0}  --stranded ${stranded}  -o ${outdir} -n ${outname} -t ${thread} --rDNA_index_bwa_mem ${rDNA_index_bwa_mem}  --genome_index_hisat2 ${genome_index_hisat2} --genome_index_bwa_mem ${genome_index_bwa_mem} --genome_index_blat ${genome_index_blat}  --genome_fasta ${genome_fasta}  --dbSNP_all ${dbSNP_all} --SNP_dbSNP_divided_by_chromosome ${SNP_dbSNP_divided_by_chromosome} --SNP_1000Genome_divided_by_chromosome ${SNP_1000Genome_divided_by_chromosome} --SNP_EVS_divided_by_chromosome  ${SNP_EVS_divided_by_chromosome}  --genome_build_version ${genome_build_version} --annotation_Alu ${annotation_Alu} --annotation_Repetitive_non_Alu ${annotation_Repetitive_non_Alu} --annotation_All_repetitive ${annotation_All_repetitive} --annotation_RepeatMasker_simple_repeats ${annotation_RepeatMasker_simple_repeats}  --annotation_intronic_4site ${annotation_intronic_4site} --annotation_gene_transcribed_strands ${annotation_gene_transcribed_strands} --annotation_splice_sites ${annotation_splice_sites}
+	else
+		bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh RNA_Editing_Calling_Pipeline_HISAT2_BWA_followed_by_GATK_HaplotypeCaller -1 ${fq1} -2 ${fq2} --stranded ${stranded}  -o ${outdir} -n ${outname} -t ${thread}  --rDNA_index_bwa_mem ${rDNA_index_bwa_mem}  --genome_index_hisat2 ${genome_index_hisat2} --genome_index_bwa_mem ${genome_index_bwa_mem} --genome_index_blat ${genome_index_blat}  --genome_fasta ${genome_fasta}  --dbSNP_all ${dbSNP_all} --SNP_dbSNP_divided_by_chromosome ${SNP_dbSNP_divided_by_chromosome} --SNP_1000Genome_divided_by_chromosome ${SNP_1000Genome_divided_by_chromosome} --SNP_EVS_divided_by_chromosome  ${SNP_EVS_divided_by_chromosome}  --genome_build_version ${genome_build_version} --annotation_Alu ${annotation_Alu} --annotation_Repetitive_non_Alu ${annotation_Repetitive_non_Alu} --annotation_All_repetitive ${annotation_All_repetitive} --annotation_RepeatMasker_simple_repeats ${annotation_RepeatMasker_simple_repeats}  --annotation_intronic_4site ${annotation_intronic_4site} --annotation_gene_transcribed_strands ${annotation_gene_transcribed_strands} --annotation_splice_sites ${annotation_splice_sites}
+	fi
+	
+	echo "NOTICE: RNA-editing calling is done."
+}
+
+preparation_for_plotting(){
+
+	#echo "summarize."
+        if [[ $# -lt 1 ]];then
+                usage_preparation_for_plotting
+                exit 1
+        fi
+	
+	GETOPT_ARGS=`getopt  -o i:h  -al inputdir:,help -- "$@"`
+	#echo ${GETOPT_ARGS}
+        inputdir=""
+        eval set -- "$GETOPT_ARGS"
+        while [ -n "$1" ]
+        do
+                case "$1" in
+                        -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
+                        -h|--help | -help) usage_preparation_for_plotting; exit 1;;
+                        --) break ;;
+                        *) echo $1,$2, usage_preparation_for_plotting; break ;;
+                esac
+        done
+	if [[ -z "$inputdir"   ]];then
+                echo "ERROR: Please specify the directory of the RNA-editing result."
+                exit 1
+        fi
+
+	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir}
+
+}
+
+histogram(){
+
+        if [[ $# -lt 1 ]];then
+                usage_histogram
+                exit 1
+        fi
+
+        GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,outname_of_replicates:,help -- "$@"`
+	echo "Options: "${GETOPT_ARGS}
+        inputdir=""
+	output=""
+	outname_of_replicates=""
+        eval set -- "$GETOPT_ARGS"
+        while [ -n "$1" ]
+        do
+                case "$1" in
+                        -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
+                        -o | --output | -output) output=$2; shift 2;;
+                        --outname_of_replicates | -outname_of_replicates) outname_of_replicates=$2; shift 2;;
+                        -h|--help | -help) usage_histogram; exit 1;;
+                        --) break ;;
+                        *) echo $1,$2, usage_histogram; break ;;
+                esac
+        done
+        if [[ -z "$inputdir"   ]];then
+                echo "ERROR: Please specify the directory of the RNA-editing result."
+                exit 1
+        fi
+        if [[ -z "$output"   ]];then
+                echo "ERROR: Please specify the full path of the pdf file for the histogram."
+                exit 1
+        fi
+        if [[ -z "$outname_of_replicates"   ]];then
+                echo "ERROR: Please specify outname (the prefix of file name for the RNA-editing results) for each replicates from the same treatment to create histogram."
+                exit 1
+        fi
+	inputdir=` echo "${inputdir}" | sed 's/\/$//g' `
+	echo "NOTICE: Start ploting histogram."
+	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir}
+	Rscript ${MYDIR}/src/plot_barplot_variant_number-v2.R ${inputdir} ${output} ${outname_of_replicates}
+	echo "NOTICE: Histogram is done." 
+}
+
+
+Manhattan_plot(){
+        if [[ $# -lt 1 ]];then
+                useage_Manhattan_plot
+                exit 1
+        fi
+
+        GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,outname_of_samples:,color_of_samples:,RNA_editing_type:,help -- "$@"`
+#echo $@"ccccccccc"
+	echo "Options: "${GETOPT_ARGS}
+        inputdir=""
+        output=""
+        outname_of_samples=""
+	color_of_samples=""
+	RNA_editing_type=""
+        eval set -- "$GETOPT_ARGS"
+        while [ -n "$1" ]
+        do
+                case "$1" in
+                        -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
+                        -o | --output | -output) output=$2; shift 2;;
+			--RNA_editing_type | -RNA_editing_type) RNA_editing_type=$2; shift 2;;
+                        --outname_of_samples | -outname_of_samples) outname_of_samples=$2; shift 2;;
+			--color_of_samples | -color_of_samples) color_of_samples=$2; shift 2;;
+                        -h|--help | -help) usage_Manhattan_plot; exit 1;;
+                        --) break ;;
+                        *) echo $1,$2, usage_Manhattan_plot; break ;;
+                esac
+        done
+        if [[ -z "$inputdir"   ]];then
+                echo "ERROR: Please specify the directory of the RNA-editing result."
+                exit 1
+        fi
+        if [[ -z "$output"   ]];then
+                echo "ERROR: Please specify the full path of the pdf file for the Manhattan plot."
+                exit 1
+        fi
+        if [[ -z "$outname_of_samples"   ]];then
+                echo "ERROR: Please specify outname (the prefix of file name for the RNA-editing results) for samples to create Manhattan plot."
+                exit 1
+        else
+		tmp_outname_of_samples=` echo "${outname_of_samples}" | sed -e 's/"//g' -e "s/'//g" -e 's/,/\n/g' | sort | uniq -d `
+		if [[ -n "$tmp_outname_of_samples"   ]];then
+			echo "ERROR: Please provide non-duplicated outnames."
+                	exit 1
+		fi
+	fi
+
+        if [[ -z "$color_of_samples"   ]];then
+                echo "ERROR: Please specify dot colors for samples to create Manhattan plot."
+                exit 1
+	else
+		tmp_outname_of_samples=` echo "${outname_of_samples}" | sed -e 's/"//g' -e "s/'//g" -e 's/,/\n/g' | wc -l `
+		tmp_color_of_samples=` echo "${color_of_samples}" | sed -e 's/"//g' -e "s/'//g" -e 's/,/\n/g' | wc -l `
+		if [[ ( $tmp_outname_of_samples -gt 1 ) && ( $tmp_outname_of_samples -ne $tmp_color_of_samples  ) ]];then
+			echo "ERROR: Please specify matched colors and samples."
+			exit 1
+		fi
+                if [[ ( $tmp_outname_of_samples -eq 1 ) && ( $tmp_color_of_samples -lt 2  ) ]];then
+                        echo "ERROR: Please provide two colors to distinguish adjacent chromosomes."
+			exit 1
+                fi
+
+        fi
+
+        if [[ -z "$RNA_editing_type" || ( ( "$RNA_editing_type" != "A-to-C" ) && ( "$RNA_editing_type" != "A-to-G" ) && ( "$RNA_editing_type" != "A-to-U" )  && ( "$RNA_editing_type" != "C-to-A" ) && ( "$RNA_editing_type" != "C-to-G" )  && ( "$RNA_editing_type" != "C-to-U" ) && ( "$RNA_editing_type" != "G-to-A" ) && ( "$RNA_editing_type" != "G-to-C" ) && ( "$RNA_editing_type" != "G-to-U" ) && ( "$RNA_editing_type" != "U-to-A" ) && ( "$RNA_editing_type" != "U-to-C" ) && ( "$RNA_editing_type" != "U-to-G" ) )  ]];then
+                echo "ERROR: Please specify interested RNA-editing type to create Manhattan plot. For example, C-to-U or A-to-G."
+                exit 1
+        fi
+
+	echo "NOTICE: Start Manhattan plot."
+#	RNA_editing_type=`echo "${RNA_editing_type}" | sed 's/U/T/g' `
+	input_outname_of_samples=` echo "${outname_of_samples}" | sed -e 's/"//g' -e "s/'//g" `  
+	input_color_of_samples=` echo "${color_of_samples}" | sed -e 's/"//g' -e "s/'//g" ` 
+
+	#outname_of_samples=` echo "${outname_of_samples}" | sed -e 's/"//g' -e "s/'//g" -e 's/,/\n/g' `
+	tmp_outname_of_samples=` echo "${outname_of_samples}" | sed -e 's/"//g' -e "s/'//g" -e 's/,/\n/g' `
+	vcf_merged_samples=${inputdir}/tmp_merged_samples.vcf
+	true > ${vcf_merged_samples}
+	while read one_outname
+	do
+#echo ${inputdir}/${one_outname}_Alu.vcf
+		cat ${inputdir}/${one_outname}_Alu.vcf | awk  -F '\t' '{print $1"\t"$2"\t"$4"-to-"$5"\t"$10"\t"$12}' | grep "${RNA_editing_type}" | sed 's/$/\t'${one_outname}'/g' >> ${vcf_merged_samples}
+                cat ${inputdir}/${one_outname}_Repetitive_non_Alu.vcf | awk  -F '\t' '{print $1"\t"$2"\t"$4"-to-"$5"\t"$10"\t"$12}' | grep "${RNA_editing_type}" | sed 's/$/\t'${one_outname}'/g' >> ${vcf_merged_samples}
+                cat ${inputdir}/${one_outname}_Non_repetitive.vcf | awk  -F '\t' '{print $1"\t"$2"\t"$4"-to-"$5"\t"$10"\t"$12}' | grep "${RNA_editing_type}" | sed 's/$/\t'${one_outname}'/g' >> ${vcf_merged_samples}
+
+	done <<< "${tmp_outname_of_samples}"
+
+	if [[ -s "$vcf_merged_samples"   ]];then	
+		Rscript ${MYDIR}/src/plot_Manhattan_plot.R ${vcf_merged_samples} ${output} ${input_outname_of_samples} ${input_color_of_samples}
+	else
+		echo "There is no site of "${RNA_editing_type}" RNA-editing type in the results."
+	fi
+
+	rm ${vcf_merged_samples}
+
+	echo "NOTICE: Manhattan plot is done."
+
+#bash src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh RNA_Editing_Calling_Pipeline_HISAT2_BWA_followed_by_GATK_HaplotypeCaller -1 ${path_of_fastq1} -2 ${path_of_fastq2} --stranded  -o ${output_dir} -n ${outname} --genome_index_hisat2 ${genome_index_hisat2} --genome_index_bwa_mem ${genome_index_bwa_mem} --genome_index_blat ${genome_index_blat}  --genome_fasta ${genome_fasta}  --SNP_dbSNP ${SNP_dbSNP} --SNP_1000Genome ${SNP_1000Genome} --SNP_EVS ${SNP_EVS}   -t ${maximum_threads} --genome_build_version ${genome_build_version}
+
+}
+
+usage_read_mapping_and_RNA_editing_calling(){
+    echo   "USAGE: ./RADAR read_mapping_and_RNA_editing_calling 
+        -s | --single | -single: Fasta file for the single-end RNA-seq data.
+        -1 | --fq1 | -fq1  and  -2 | --fq2 | -fq2: Fasta file for the paired-end RNA-seq data.
+        --stranded | -stranded: If the RNA-seq is stranded or not. Value: true or false.
+        -n | --outname | -outname: The prefix of file name for the RNA-editing results.
+        -o | --outdir | -outdir: Output directory of the results.
+        -t | --thread | -thread: Maximum threads used for computation.
+        -h | --help | -help: Print help information.
+
+Detail information was available at https://github.com/YangLab/RADAR.
+	"
+}
+
+usage_preparation_for_plotting(){
+	echo  "USAGE: ./RADAR preparation_for_plotting
+        -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -h | --help | -help: Print help information.
+
+Detail information was available at https://github.com/YangLab/RADAR.
+	"
+}
+usage_histogram(){
+	echo "USAGE: ./RADAR histogram
+        -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -o | --output | -output: Full path of the pdf file for the histogram.
+        --outname_of_replicates | -outname_of_replicates: The prefix of file name for the RNA-editing results for each replicates from the same treatment. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3\".
+        -h | --help | -help: Print help information.
+
+Detail information was available at https://github.com/YangLab/RADAR.
+	"
+}
+
+useage_Manhattan_plot(){
+	echo "USAGE: ./RADAR Manhattan_plot
+        -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -o | --output | -output: Full path of the pdf file for the Manhattan plot.
+	--RNA_editing_type | -RNA_editing_type: Interested RNA-editing type for the Manhattan plot, which was selected from all twelve-types RNA-editing, including A-to-C, A-to-G, A-to-U, C-to-A, C-to-G, C-to-U, G-to-A, G-to-C, G-to-U, U-to-A, U-to-C, U-to-G.
+	--outname_of_samples | -outname_of_samples: Outname of samples for plot. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3,s2_rep1,s2_rep2,s2_rep3\".
+	--color_of_samples | -color_of_samples: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma. For example, \"#919191,#919191,#919191,#FF3F00,#FF3F00,#FF3F00\". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes.
+        -h | --help | -help: Print help information.
+
+Detail information was available at https://github.com/YangLab/RADAR.
+	"
+}
+
+
+
+"$@"

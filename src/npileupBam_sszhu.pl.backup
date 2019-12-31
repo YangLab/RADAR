@@ -1,0 +1,218 @@
+#!/usr/bin/env perl
+#
+# Name:        /picb/extprog/biopipeline/bin/pileupBam.pl
+# Author:      Shanshan Zhu <sszhu1007@gmail.com>
+# License:     GPL
+# Created:     Sat Feb. 23, 2013 21:07:00
+# Last Change: Shanshan Zhu <sszhu1007@gmail.com> Sun Jan. 26, 2014 12:36:42
+#
+use strict;
+use warnings;
+use File::Basename;
+use Getopt::Long;
+
+my $version='1';
+my $command=join"\t",@ARGV;
+warn "Command:\t$0\t$command\n"; 
+local $|=1;
+####################### USAGE;
+#    count=$(samtools idxstats $file | perl -ane '$a+=$F[2];END{print "$a"}')
+#    rlength=$(samtools view $file | perl -lane 'print scalar(split //,$F[9]) and last if $F[5]=~/^[\dM]*$/;')
+#    (echo -n "4\t$rlength\t";echo "scale=8;1000000000/$count/$rlength" | bc;samtools mpileup -OI -f $genome.fa  $file )| perl -lane '($cut,$rlength,$ratio)=@F and next if @F==3;
+#        $,="\t";$F[4]=~s/(\^.)+|(\$.)+//g;@a=split //,$F[4];@s=split /,/,$F[6]; 
+#        @ps=grep {$s[$_]>$cut and $s[$_]<$rlength-$cut and $a[$_]!~/[><]/} 0..$#s;   ##### >4 and <96, not only junction
+#        $new_s=join("",@a[@ps]); $ct=@ps;
+#        next unless $new_s=~/[actng]/i;                                ##### have variants
+#        #next unless $ct>5;                                             ##### 5 hits
+#        next unless $ct*$ratio>5;                                             ##### 5 HPB
+#        my (%ct,$vct,@ids);
+#        map{$ct{$_=~/[,.]/?uc($F[2]):($vct++,uc $_)}++} @a[@ps];
+#        @ids=sort {$ct{$b}<=>$ct{$a}} grep {$_ ne uc($F[2])} qw(A C G N T);   #### get max variant
+#        next if $ids[0]=~/N/;                                                 #### not N
+#        next unless $ct{$ids[0]}>1;                                           #### variant > 1
+#        next unless $ct{$ids[0]}/$ct>0.05;                                    #### change ratio > 5%
+#        next unless $ct{$ids[0]}/$vct>0.95;                                   #### effentive signal > 95%
+#        print @F[0..3],$new_s,$ct,(map {$_?$_:0} map { $ct{$_},$ct{$_}/$ct} qw(A C G N T)),$ct,$ct*$ratio' > $m.vcf
+sub usage {
+    print <<"END_USAGE";
+Usage: perl $0
+        --input         FILENAME for bam file
+        --seq           Genome sequence
+        --region        region for samtools -r
+        --list          list file for samtools -l
+        --num           Top n sites (default all)
+        --overhang      delete the bases on the ends(default >=1: all)
+        --reads         more than n reads(default >=1)
+        --HPB           more than n HPB(default >5)
+        --variants      more than n variants(default >=2)
+        --eSignal       effective signal(default >0.95)
+        --minBQ         minimum base quality to filter reads ( default >=0,25=ord(:)-33,s//N/)
+        --cRatio        change ratio(default >0.05)
+        --depth         max per-BAM depth to avoid excessive memory usage (default 80000)
+        --debug         debug
+        --all           No cutoff(overhang=1,HPB=0,eSignal=0,cRatio=0,var=0,minBQ=0), 
+                        suppress all other parameters.
+        ex: 
+            samtools mpileup /picb/rnomics1/xiaoou/data/circular_RNA/expression/PA1_nuc_sol_sorted.bam -f /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/index/hg19_all_v2.fa -r "chr1:666085-666087"
+            pileupBam.pl -i /picb/rnomics1/xiaoou/data/circular_RNA/expression/PA1_nuc_sol_sorted.bam -s /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/index/hg19_all_v2.fa -o 1 -minBQ 20 -HPB 0 -v 1 -eSignal 0 --cRatio 0 -region "chr1:666085-666087"
+            seq="/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/index/hg19_all_v2.fa"
+            pileupBam.pl -i m.bam -s \$seq -o 6 -HPB 0 -v 2 -eSignal 0 --cRatio 0
+            pileupBam.pl -i m.bam -s \$seq -o 6 -HPB 2 >vcfs/m.vcf
+        --help
+END_USAGE
+    exit;
+}
+####################### get options to overlap default values;
+my ($input,$seq,$region,$list,$num,$over,$reads,$HPB,$variants,$eSignal,$minBQ,$cRatio,$depth,$all,$help,$debug);
+$over=1; $HPB=5; $variants=2; $eSignal=0.95;$minBQ=0; $cRatio=0.05;$reads=1;$depth=8000;
+GetOptions (
+        'input=s'		=>	\$input,
+        'seq=s'         =>  \$seq,
+        'region=s'      =>  \$region,
+        'list=s'        =>  \$list,
+        'num=i'         =>  \$num,
+        'overhang=i'    =>  \$over,
+        'HPB=f'         =>  \$HPB,
+        'reads=i'       =>  \$reads,
+        'variants=i'    =>  \$variants,
+        'eSignal=f'     =>  \$eSignal,
+        'minBQ=i'       =>  \$minBQ,
+        'cRatio=f'      =>  \$cRatio,
+        'depth=i'       =>  \$depth,
+        'debug'			=>	\$debug,
+        'all'           =>  \$all,
+        'help'			=>	\$help,
+        ) or usage();
+usage() if $help or !$input or !$seq;
+if($all){
+    $over=1; $HPB=0; $variants=0; $eSignal=0; $cRatio=0;$reads=1;
+}
+my $paras="";
+$paras.="-r $region " if $region;
+$paras.="-l $list " if $list;
+
+my %idx=(A=>7,C=>9,G=>11,N=>13,T=>15);
+{###### close
+    #### get count
+#    count=$(samtools idxstats $m.bam | perl -ane '$a+=$F[2];END{print "$a"}')
+    my $count=0;
+    open my $in, "/picb/rnomics4/rotation/fuzhican/software/conda/envs/circ/bin/samtools idxstats $input |" or die;
+    while(<$in>){
+        my @F=split /\t/;
+        $count+=$F[2];
+    }
+    #print "count\t$count\n";
+    #### get rlength
+#    rlength=$(samtools view $m.bam | perl -lane 'print scalar(split //,$F[9])    
+#    and last if $F[5]=~/^[\dM]*$/;')
+    open $in,"/picb/rnomics4/rotation/fuzhican/software/conda/envs/circ/bin/samtools view $input |" or die;
+    my $rlength=0;
+    while(<$in>){
+        my @F=split /\t/;
+        if($F[5]=~/^[\dM]*$/){
+            $rlength=scalar(split //,$F[9]);
+            last;
+        }
+    }
+    #print "rlength\t$rlength\n";
+    # my $ratio=1000000000/$count/($rlength);
+    my $ratio=1000000000/$count/($rlength-2*$over);
+    # print "$input\t$count\t$rlength\n";
+    open my $pileup,"/picb/rnomics4/rotation/fuzhican/software/conda/envs/circ/bin/samtools mpileup -Q 0 -d $depth -OI -f $seq $paras $input|" or die;
+    # chr10   60027   G       1       ^S,     D       1
+    # chr10   60029   G       1       ,       D       3
+    while(<$pileup>){
+        my @F=split /\t/;
+        #print "F\t",join("\t",@F);
+        $F[4]=~s/(\^.)+|(\$)+//g;   ### remove starts, qualities, and ends;
+        #print "F[4]\t$F[4]\n";
+        my $temp=$F[4];             ### remove insertions and deletions.    ### updated by sszhu1007@gmail.com 13.06.13 18:49:05 ###
+        #next unless $F[4]=~/\+|-/;
+        while($temp=~/(\+|-)(\d+)/g){
+            my $ss=$1;
+            $ss="\\$ss" if $ss eq "+";
+            $F[4]=~s/$ss$2 @{["." x $2]}//x;}
+        my @a=split //,$F[4];
+        my @positions=map{chomp;$_} split /,/,$F[6]; 
+        my @scores=split //,$F[5];
+        ##
+        #
+        #
+        #so the 6 column of samtools mpileup result is the align position of the read?
+        my @p_sites=grep {$a[$_]!~/[><\*]/ and $positions[$_]>=$over and $positions[$_]<=$rlength-$over+1 } 0..$#positions;   ##### >4 and <96, not only junction
+        my $ct_total=@p_sites;     #### contain the minBQ filtered bases;
+        if($minBQ){
+            @p_sites=grep {ord($scores[$_])-33>=$minBQ} @p_sites;   ##### >4 and <96, not only junction
+        }
+        my $ct=@p_sites; 
+        next if $ct<1;
+        next unless !$HPB or ($HPB and $ct_total*$ratio>$HPB);                         #### 5 HPB
+        next unless !$reads or ($reads and $ct_total>=$reads);                         #### 1 reads
+        my @a_new=@a[@p_sites];
+        my @positions_new=@positions[@p_sites];
+        my @scores_new=@scores[@p_sites];
+        my (%ct,$vct,@locs,@ids); $vct=0;
+        map{$ct{$_}=0} qw(A C G N T);
+        # map{$ct{$_=~/[,.]/?uc($F[2]):($vct++,uc $_)}++} @a[@p_sites];    ### updated by sszhu1007@gmail.com 14.01.15 17:19:56 ###
+        map{$ct{$a_new[$_]=~/[,.]/?uc($F[2]):($vct++,(push @locs,$_),uc $a_new[$_])}++} 0..$#a_new;
+        ##### have variants (total variants > 0)
+        #next unless $vct > 0;                                                    
+        @ids=sort {$ct{$b}<=>$ct{$a}} grep {$_ ne uc($F[2])} qw(A C G N T);      #### get max variant
+        #next if $ids[0]=~/N/;                                                    #### not N
+        #next unless !$variants or ( $variants and $ct{$ids[0]}>=$variants);      #### change count >= 2;
+        #next unless !$cRatio or ($cRatio and $ct{$ids[0]}/$ct>$cRatio);          #### change ratio > 5%;
+        #next unless !$eSignal or ( $eSignal and $vct>0 and $ct{$ids[0]}/$vct>$eSignal);     #### effective signal > 95%;
+        # print join("\t",@F[0..3],$new_str,$ct,(map {$_?$_:0} map { $ct{$_},$ct{$_}/$ct} qw(A C G N T)),$ct,$ct*$ratio)."\n";    ### updated by sszhu1007@gmail.com 14.01.15 17:10:42 ###
+        print join("\t",@F[0..2],$ct,join("",@a_new),join("",@a_new[@locs])."^///^".join("",@scores_new[@locs])."^///^".join(",",@positions_new[@locs]),(map {$_?$_:0} map { $ct{$_},$ct{$_}/$ct} qw(A C G N T)),$vct,$ct_total,$ct_total*$ratio)."\n";  
+    }
+}
+
+sub getFiles{
+    my $input=$_[0];
+    my (@files,%files);
+    for (split /,/,$input){#### get file names based on $methy_files;
+        if(/\|/){
+            my $bas=basename($_);
+            my $dir=dirname($_);
+            for my $f(split /\|/,$bas){
+                map {push @files,$_ if ! $files{$_}++} glob "$dir/$f";     ### updated by sszhu1007@gmail.com 12.10.07 12:54:13 ###
+            }
+        }else{ map {push @files,$_ if ! $files{$_}++} glob $_; }
+    }
+    #@files=sort keys %files;
+    return \@files;
+}
+#sub sortByFirstNum{
+#	my ($aa)=$a=~/(\d+)/g;
+#	my ($bb)=$b=~/(\d+)/g;
+#	$aa=0 unless $aa;
+#	$bb=0 unless $bb;
+#	$aa <=> $bb;
+#}
+#print join("\t",$f,map {sprintf "%d(%0.3g%%)",$f2tag2num{$f}{$_},$f2tag2num{$f}{$_}/$f2tag2num{$f}{"Total"}*100} @tags),"\n";
+#
+#=test
+#cd $RNA_seq/bwa/H9_diff_merge
+#pileupBam.pl 
+#pileupBam.pl -i H9D0.bam -s $seq -o 6  | head 
+#cd $RNA_seq/bwa/H9_diff_merge
+#snp=/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/snp/SNP135G1000.txt
+#data="$RNA_seq/rawdata/H9_diff_merge"
+#idx=/picb/rnomics1/index/bwa_index/hg19_genome_jctns_readlen100_overhang6_nohap.fa
+#seq=/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/hg19.fa
+#for i in $data/*.txt; do t=${i#*/}; m=${t%%.txt}; 
+    #echo $m
+    #if ! [ -e $m.check ]; then touch $m.check;
+        #pileupBam.pl -i $m.bam -s $seq -l $snp -all >vcfs/SNP_$m.vcf
+    #fi; done
+        #pileupBam.pl -i $m.bam -s $seq -o 6 >vcfs/SNP_$m.vcf
+#perl -le 'print "$_\t".chr($_)."\t".($_-33) for (33..63)'
+#seq=/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/hg19.fa
+#pileupBam.pl -i H9D0.bam -s $seq -o 0 -HPB 0 -v 0 -cR 0 -eS 0 | head
+#pileupBam.pl -i 55.bam -s $seq -o 0 -HPB 0 -v 1 -cR 0 -eS 0 | head
+#pileupBam.pl -i H9D0.bam -s $seq -r "chrX" -al | head
+#pileupBam.pl -i /picb/rnomics1/dongrui/bwa/merge_map/20120321_snolnc_kd_sample1_ATGTCA.bam -s /picb/rnomics1/index/bwa_index/hg19_genome_jctns_readlen100_overhang5_all.fa -o 6 -HPB 0 -v 2 -reads 5 -eSignal 0.8 -cRatio 0  | head
+#pileupBam.pl -i /picb/rnomics1/dongrui/bwa/merge_map/20120321_snolnc_kd_sample1_ATGTCA.bam -s /picb/rnomics1/index/bwa_index/hg19_genome_jctns_readlen100_overhang5_all.fa -o 1 -HPB 0 -v 2 -reads 1 -eSignal 0.8 -cRatio 0  | head
+
+# vim:fdm=marker
+
