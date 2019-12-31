@@ -130,4 +130,4 @@ COMMAND: `./RADAR Manhattan_plot -i "outdir_of_read_mapping_and_RNA_editing_call
 Wang X#, Ding C#, Yu W#, Xiong YC#, He S#, Yang B#, Wang Y, Li J, Lu Z, Zhu W, Wu J, Wei J, Huang X, Liu Z*, Yang L* and Chen J*. Cas12a base editors induce efficient and specific editing with low DNA damage response. in revision.
 
 ## License
-Copyright (C) 2020 YangLab. See the [LICENSE](https://github.com/xiongyichun/RADAR/blob/master/LICENSE) file for license rights and limitations (MIT).
+Copyright (C) 2020 YangLab. [Licensed GPLv3](https://github.com/xiongyichun/RADAR/blob/master/LICENSE) for open source use or contact YangLab (yanglab@@picb.ac.cn) for commercial use.
