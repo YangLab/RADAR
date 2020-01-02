@@ -28,11 +28,12 @@ dir_tools=${MYDIR}/../tools
 dir_scripts=${MYDIR}/../src
 chmod +x ${dir_scripts}/annotate_variation.pl
 chmod +x ${dir_scripts}/convert2annovar.pl
+chmod +x ${dir_scripts}/pslScore.pl
 chmod +x ${dir_tools}/random
 chmod +x ${dir_tools}/gfServer
 chmod +x ${dir_tools}/gfClient
 chmod +x ${dir_tools}/netstat
-chmod +x ${dir_tools}/pslScore.pl
+
 
 
 run_2013_NatMethods_filter_SNP_flexible(){
