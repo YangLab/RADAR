@@ -26,6 +26,11 @@ echo `date` dir:`pwd` command:$0 $* >>$0.arg
 MYDIR=`dirname $0`
 dir_tools=${MYDIR}/../tools
 dir_scripts=${MYDIR}/../src
+chmod +x ${dir_scripts}/annotate_variation.pl
+chmod +x ${dir_scripts}/convert2annovar.pl
+chmod +x ${dir_tools}/random
+chmod +x ${dir_tools}/gfServer
+chmod +x ${dir_tools}/gfClient
 
 run_2013_NatMethods_filter_SNP_flexible(){
 
