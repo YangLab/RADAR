@@ -16,7 +16,10 @@ RADAR can be run directly without setup process after downloaded and unzipped, o
 2. [BWA (>=0.7.9)](http://bio-bwa.sourceforge.net/)
 3. [Samtools (>=1.7)](http://www.htslib.org/)
 4. [GATK (>=4.0.1.0)](https://software.broadinstitute.org/gatk/)
-5. [R (>=3.0.2)](https://www.r-project.org)<br/>
+5. [Python](https://www.python.org/)<br/>
+    Dependent Python modules:
+    * [pysam](https://pysam.readthedocs.io/en/latest/index.html)
+6. [R (>=3.0.2)](https://www.r-project.org)<br/>
     Dependent R packages:
     * [ggplot2](https://ggplot2.tidyverse.org/index.html)
     * [dplyr](https://dplyr.tidyverse.org/index.html)
