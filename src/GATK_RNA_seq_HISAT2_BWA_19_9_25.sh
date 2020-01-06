@@ -368,7 +368,7 @@ preparation_for_plotting(){
         while [ -n "$1" ]
         do
                 case "$1" in
-                        -o|--inputdir | -inputdir) inputdir=$2; shift 2;;
+                        -i|--inputdir | -inputdir) inputdir=$2; shift 2;;
                         -h|--help | -help) usage_preparation_for_plotting; exit 1;;
                         --) break ;;
                         *) echo $1,$2, usage_preparation_for_plotting; break ;;
