@@ -27,7 +27,7 @@ fi
 
 read_mapping_and_RNA_editing_calling(){
 
-echo ${MYDIR}
+#echo ${MYDIR}
 
 	if [[ $# -lt 1 ]];then  
     		usage_read_mapping_and_RNA_editing_calling
