@@ -125,7 +125,7 @@ COMMAND: `./RADAR Manhattan_plot -i "outdir_of_read_mapping_and_RNA_editing_call
 ##### Options
 `-i | --inputdir | -inputdir`: The directory of the RNA-editing results.  <br />
 `--RNA_editing_type | -RNA_editing_type`: Interested RNA-editing type for the Manhattan plot, which was selected from all twelve-types RNA-editing, including A-to-C, A-to-G, A-to-U, C-to-A, C-to-G, C-to-U, G-to-A, G-to-C, G-to-U, U-to-A, U-to-C, U-to-G. <br />
-`-n | --outname_of_samples | -outname_of_samples`: Outname of samples from STEP1 for the RNA-editing results. The separator between outnames should be comma, for example, "s1_rep1,s1_rep2,s1_rep3,s2_rep1,s2_rep2,s2_rep3". <br />
+`-n | --outname_of_samples | -outname_of_samples`: Outnames of samples from STEP1 for the RNA-editing results. The separator between outnames should be comma, for example, "s1_rep1,s1_rep2,s1_rep3,s2_rep1,s2_rep2,s2_rep3". <br />
 `-c | --color_of_samples | -color_of_samples`: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma (,). For example, "#919191,#919191,#FF3F00,#FF3F00,#FF3F00". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes. <br />
 `-o | --output | -output`: Full path of the pdf file for the Manhattan plot.  <br />
 `-h | --help | -help`: Print help information.  <br />
