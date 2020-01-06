@@ -116,7 +116,7 @@ COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -s "full_path_of_fastq" -
 COMMAND: `./RADAR histogram -i "outdir_of_read_mapping_and_RNA_editing_calling" -n "outnames_of_replicates_from_STEP1" -o "file_of_plot"  `  <br />
 ##### Options
 `-i | --inputdir | -inputdir`: The directory of the RNA-editing results.  <br />
-`-n | --outname_of_replicates | -outname_of_replicates`: The outnames of replicates from STEP1 RNA-editing results for each replicates of the same treatment. The separator between outnames should be comma, for example, "s1_rep1,s1_rep2,s1_rep3". <br />
+`-n | --outname_of_replicates | -outname_of_replicates`: The outnames of STEP1 RNA-editing results for multiple replicates from the same treatment. The separator between outnames should be comma, for example, "s1_rep1,s1_rep2,s1_rep3". <br />
 `-o | --output | -output`: Full path of the pdf file for the histogram. <br />
 `-h | --help | -help`: Print help information.  <br />
 
