@@ -98,9 +98,9 @@ RADAR pipeline can break down into three main steps, while read mapping and RNA-
 
 ### STEP 1: Read mapping and RNA-editing calling
 * For paired-end RNA-seq data: <br />
-COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -1 "full_path_of_fastq1" -2 "full_path_of_fastq2" --stranded "true/false"  -o "output_dir" -n "outname"  -t "maximum_threads" `
+COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -1 "full_path_of_fastq1" -2 "full_path_of_fastq2" --stranded "true/false" -n "outname" -o "output_dir"  -t "maximum_threads" `
 * For single-end RNA-seq data: <br />
-COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -s "full_path_of_fastq" --stranded "true/false"  -o "output_dir" -n "outname" -t "maximum_threads"  `
+COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -s "full_path_of_fastq" --stranded "true/false" -n "outname" -o "output_dir" -t "maximum_threads"  `
 ##### Options
 `-s | --single | -single`: Fasta file for the single-end RNA-seq data. <br />
 `-1 | --fq1 | -fq1`  and  `-2 | --fq2 | -fq2`: Fasta file for the paired-end RNA-seq data. <br />
