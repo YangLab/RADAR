@@ -257,7 +257,7 @@ histogram(){
                 exit 1
         fi
 
-        GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,outname_of_replicates:,help -- "$@"`
+        GETOPT_ARGS=`getopt  -o i:o:n:h  -al inputdir:,output:,outname_of_replicates:,help -- "$@"`
 	echo "Options: "${GETOPT_ARGS}
         inputdir=""
 	output=""
@@ -268,7 +268,7 @@ histogram(){
                 case "$1" in
                         -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
                         -o | --output | -output) output=$2; shift 2;;
-                        --outname_of_replicates | -outname_of_replicates) outname_of_replicates=$2; shift 2;;
+                        -n | --outname_of_replicates | -outname_of_replicates) outname_of_replicates=$2; shift 2;;
                         -h|--help | -help) usage_histogram; exit 1;;
                         --) break ;;
                         *) echo $1,$2, usage_histogram; break ;;
@@ -296,11 +296,11 @@ histogram(){
 
 Manhattan_plot(){
         if [[ $# -lt 1 ]];then
-                useage_Manhattan_plot
+                usage_Manhattan_plot
                 exit 1
         fi
 
-        GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,outname_of_samples:,color_of_samples:,RNA_editing_type:,help -- "$@"`
+        GETOPT_ARGS=`getopt  -o i:o:n:c:h  -al inputdir:,output:,outname_of_samples:,color_of_samples:,RNA_editing_type:,help -- "$@"`
 #echo $@"ccccccccc"
 	echo "Options: "${GETOPT_ARGS}
         inputdir=""
@@ -315,8 +315,8 @@ Manhattan_plot(){
                         -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
                         -o | --output | -output) output=$2; shift 2;;
 			--RNA_editing_type | -RNA_editing_type) RNA_editing_type=$2; shift 2;;
-                        --outname_of_samples | -outname_of_samples) outname_of_samples=$2; shift 2;;
-			--color_of_samples | -color_of_samples) color_of_samples=$2; shift 2;;
+                        -n | --outname_of_samples | -outname_of_samples) outname_of_samples=$2; shift 2;;
+			-c | --color_of_samples | -color_of_samples) color_of_samples=$2; shift 2;;
                         -h|--help | -help) usage_Manhattan_plot; exit 1;;
                         --) break ;;
                         *) echo $1,$2, usage_Manhattan_plot; break ;;
@@ -420,21 +420,21 @@ Detail information was available at https://github.com/YangLab/RADAR.
 usage_histogram(){
 	echo "USAGE: ./RADAR histogram
         -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -n | --outname_of_replicates | -outname_of_replicates: The prefix of file name for the RNA-editing results for each replicates from the same treatment. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3\".
         -o | --output | -output: Full path of the pdf file for the histogram.
-        --outname_of_replicates | -outname_of_replicates: The prefix of file name for the RNA-editing results for each replicates from the same treatment. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3\".
         -h | --help | -help: Print help information.
 
 Detail information was available at https://github.com/YangLab/RADAR.
 	"
 }
 
-useage_Manhattan_plot(){
+usage_Manhattan_plot(){
 	echo "USAGE: ./RADAR Manhattan_plot
         -i | --inputdir | -inputdir: The directory of the RNA-editing results.
-        -o | --output | -output: Full path of the pdf file for the Manhattan plot.
 	--RNA_editing_type | -RNA_editing_type: Interested RNA-editing type for the Manhattan plot, which was selected from all twelve-types RNA-editing, including A-to-C, A-to-G, A-to-U, C-to-A, C-to-G, C-to-U, G-to-A, G-to-C, G-to-U, U-to-A, U-to-C, U-to-G.
-	--outname_of_samples | -outname_of_samples: Outname of samples for plot. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3,s2_rep1,s2_rep2,s2_rep3\".
-	--color_of_samples | -color_of_samples: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma. For example, \"#919191,#919191,#919191,#FF3F00,#FF3F00,#FF3F00\". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes.
+	-n | --outname_of_samples | -outname_of_samples: Outname of samples for plot. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3,s2_rep1,s2_rep2,s2_rep3\".
+	-c | --color_of_samples | -color_of_samples: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma. For example, \"#919191,#919191,#919191,#FF3F00,#FF3F00,#FF3F00\". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes.
+        -o | --output | -output: Full path of the pdf file for the Manhattan plot.
         -h | --help | -help: Print help information.
 
 Detail information was available at https://github.com/YangLab/RADAR.
