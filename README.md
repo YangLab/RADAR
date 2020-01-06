@@ -78,6 +78,7 @@ Reference genome, genomic sequence index and genomic annotations should be provi
      * Example: `annotation_intronic_4site=~/annotation/Human/hg38/hg38_intronic_4site.bed`
 5. Annotation of transcribed strands of genes <br />
      * Example: `annotation_gene_transcribed_strands=~/annotation/Human/hg38/ref_UCSC_refFlat.bed`
+
 All genome annotations are in BED format:
 
 | Field       | Description                                      |
