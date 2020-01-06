@@ -12,9 +12,10 @@ MYDIR=`dirname $0`
 
 function usage(){
     echo "USAGE: 
-	* ./RADAR read_mapping_and_RNA_editing_calling -h
-	* ./RADAR histogram -h 
-	* ./RADAR Manhattan_plot -h
+	* STEP 1 (Read mapping and RNA-editing calling): ./RADAR read_mapping_and_RNA_editing_calling -h
+	* STEP 2 (RNA-editing visualization):
+		1) ./RADAR histogram -h 
+		2) ./RADAR Manhattan_plot -h
 
 Detail information was available at https://github.com/YangLab/RADAR.
 	"
@@ -411,7 +412,7 @@ Detail information was available at https://github.com/YangLab/RADAR.
 
 usage_preparation_for_plotting(){
 	echo  "USAGE: ./RADAR preparation_for_plotting
-        -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -i | --inputdir | -inputdir: The directory of the STEP1 RNA-editing results.
         -h | --help | -help: Print help information.
 
 Detail information was available at https://github.com/YangLab/RADAR.
@@ -419,7 +420,7 @@ Detail information was available at https://github.com/YangLab/RADAR.
 }
 usage_histogram(){
 	echo "USAGE: ./RADAR histogram
-        -i | --inputdir | -inputdir: The directory of the RNA-editing results.
+        -i | --inputdir | -inputdir: The directory of the STEP1 RNA-editing results.
         -n | --outname_of_replicates | -outname_of_replicates: The outnames of STEP1 RNA-editing results for multiple replicates from the same treatment. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3\".
         -o | --output | -output: Full path of the pdf file for the histogram.
         -h | --help | -help: Print help information.
