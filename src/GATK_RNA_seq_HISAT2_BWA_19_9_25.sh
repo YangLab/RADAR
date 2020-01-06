@@ -301,9 +301,9 @@ gatk_Variant_filter(){
     local annotation_Repetitive_non_Alu=${12} 
     local annotation_All_repetitive=${13} 
     local annotation_RepeatMasker_simple_repeats=${14} 
-    local annotation_intronic_4site=${16} 
-    local annotation_gene_transcribed_strands=${17}   
-    local stranded=${18}
+    local annotation_intronic_4site=${15} 
+    local annotation_gene_transcribed_strands=${16}   
+    local stranded=${17}
  
     m1_path=${outdir}/${outname}_tmp/gatk
     local var_call=${m1_path}/4-0-0var_calling
