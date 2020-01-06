@@ -412,7 +412,7 @@ Detail information was available at https://github.com/YangLab/RADAR.
 
 usage_preparation_for_plotting(){
 	echo  "USAGE: ./RADAR preparation_for_plotting
-        -i | --inputdir | -inputdir: The directory of the STEP1 RNA-editing results.
+        -i | --inputdir | -inputdir: The directory of the PART1 RNA-editing results.
         -h | --help | -help: Print help information.
 
 Detail information was available at https://github.com/YangLab/RADAR.
