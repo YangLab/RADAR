@@ -17,7 +17,7 @@ function usage(){
 		1) ./RADAR histogram -h 
 		2) ./RADAR Manhattan_plot -h
 
-Detail information was available at https://github.com/YangLab/RADAR.
+Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 
@@ -406,7 +406,7 @@ usage_read_mapping_and_RNA_editing_calling(){
         -t | --thread | -thread: Maximum threads used for computation.
         -h | --help | -help: Print help information.
 
-Detail information was available at https://github.com/YangLab/RADAR.
+Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 
@@ -415,7 +415,7 @@ usage_preparation_for_plotting(){
         -i | --inputdir | -inputdir: The directory of the PART1 RNA-editing results.
         -h | --help | -help: Print help information.
 
-Detail information was available at https://github.com/YangLab/RADAR.
+Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 usage_histogram(){
@@ -425,7 +425,7 @@ usage_histogram(){
         -o | --output | -output: Full path of the pdf file for the histogram.
         -h | --help | -help: Print help information.
 
-Detail information was available at https://github.com/YangLab/RADAR.
+Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 
