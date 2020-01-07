@@ -171,9 +171,9 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
 	## remove rRNA
 	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq1  $fq2 > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 
 	#2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
-	samtools view -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
-	samtools sort -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
-	samtools fastq -1 ${rRNAdeplete_path}/${outname}_R1.fastq.gz -2 ${rRNAdeplete_path}/${outname}_R2.fastq.gz -s ${rRNAdeplete_path}/${outname}_singleton.fq ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
+	samtools view --threads ${thread} -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
+	samtools sort --threads ${thread} -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
+	samtools fastq --threads ${thread} -1 ${rRNAdeplete_path}/${outname}_R1.fastq.gz -2 ${rRNAdeplete_path}/${outname}_R2.fastq.gz -s ${rRNAdeplete_path}/${outname}_singleton.fq ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
 	rm ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
 	rm ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
 	fq1=${rRNAdeplete_path}/${outname}_R1.fastq.gz
@@ -185,15 +185,15 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
         hisat2  --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x   ${genome_index_hisat2} -1  $fq1  -2 $fq2  --un-conc-gz ${HISAT_map}/${outname}_un_conc_%.fastq.gz -S ${HISAT_map}/${outname}_HISAT2_mapped.sam  
 	#2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log ###### Wed Nov 20 08:06:39 CST 2019 fzc
         
-        samtools view -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag"}}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag"  }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
+        samtools view --threads ${thread} -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag"}}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag"  }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
 
         #samtools view -f 4 -S ${HISAT_map}/${outname}_HISAT2_mapped.sam |awk 'BEGIN{FS="\t"}{print $1}'|sort|uniq >${HISAT_map}/${outname}_hisat2_unmap.readid 
         #$seqtk subseq ${HISAT_map}/${outname}_un_conc_1.fastq.gz ${HISAT_map}/${outname}_hisat2_unmap.readid |gzip > ${HISAT_map}/${outname}_unmapped_1.fastq.gz  &
         #$seqtk subseq ${HISAT_map}/${outname}_un_conc_2.fastq.gz ${HISAT_map}/${outname}_hisat2_unmap.readid |gzip > ${HISAT_map}/${outname}_unmapped_2.fastq.gz  
         #wait
-        samtools view -bh -f 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam > ${HISAT_map}/${outname}_HISAT2_mapped-unmapped.bam
-        samtools sort -n ${HISAT_map}/${outname}_HISAT2_mapped-unmapped.bam  -o ${HISAT_map}/${outname}_HISAT2_mapped-unmapped_sorted.bam
-        samtools fastq -1 ${HISAT_map}/${outname}_unmapped_1.fastq.gz -2 ${HISAT_map}/${outname}_unmapped_2.fastq.gz -s ${HISAT_map}/${outname}_unmapped_singleton.fq  ${HISAT_map}/${outname}_HISAT2_mapped-unmapped_sorted.bam
+        samtools view --threads ${thread} -bh -f 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam > ${HISAT_map}/${outname}_HISAT2_mapped-unmapped.bam
+        samtools sort --threads ${thread} -n ${HISAT_map}/${outname}_HISAT2_mapped-unmapped.bam  -o ${HISAT_map}/${outname}_HISAT2_mapped-unmapped_sorted.bam
+        samtools fastq --threads ${thread} -1 ${HISAT_map}/${outname}_unmapped_1.fastq.gz -2 ${HISAT_map}/${outname}_unmapped_2.fastq.gz -s ${HISAT_map}/${outname}_unmapped_singleton.fq  ${HISAT_map}/${outname}_HISAT2_mapped-unmapped_sorted.bam
 
 
         ### 2. BWA 6 mismatches mapping
@@ -208,9 +208,9 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
 
 	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq0  > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 
 	#2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
-        samtools view -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
-        samtools sort -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
-        samtools fastq  ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam | gzip > ${rRNAdeplete_path}/${outname}.fastq.gz
+        samtools view --threads ${thread} -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
+        samtools sort --threads ${thread} -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
+        samtools fastq --threads ${thread}  ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam | gzip > ${rRNAdeplete_path}/${outname}.fastq.gz
         rm ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
         rm ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
         fq0=${rRNAdeplete_path}/${outname}.fastq.gz
@@ -222,10 +222,10 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
         hisat2 --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x ${genome_index_hisat2} -U $fq0 -S ${HISAT_map}/${outname}_HISAT2_mapped.sam 
 	#2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log 
 
-        samtools view -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag" }}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag" }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
-        samtools view -bS -f 4 -o ${HISAT_map}/${outname}_HISAT2_unmapped.bam ${HISAT_map}/${outname}_HISAT2_mapped.sam
-	samtools sort -n ${HISAT_map}/${outname}_HISAT2_unmapped.bam  -o ${HISAT_map}/${outname}_HISAT2_unmapped_sort.bam
-        samtools fastq  ${HISAT_map}/${outname}_HISAT2_unmapped_sort.bam | gzip  > ${HISAT_map}/${outname}_HISAT2_unmapped.fastq.gz
+        samtools view --threads ${thread} -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag" }}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag" }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
+        samtools view --threads ${thread} -bS -f 4 -o ${HISAT_map}/${outname}_HISAT2_unmapped.bam ${HISAT_map}/${outname}_HISAT2_mapped.sam
+	samtools sort --threads ${thread} -n ${HISAT_map}/${outname}_HISAT2_unmapped.bam  -o ${HISAT_map}/${outname}_HISAT2_unmapped_sort.bam
+        samtools fastq --threads ${thread}  ${HISAT_map}/${outname}_HISAT2_unmapped_sort.bam | gzip  > ${HISAT_map}/${outname}_HISAT2_unmapped.fastq.gz
  
         #/picb/rnomics4/rotation/fuzhican/software/conda/envs/circ/bin/bamToFastq -i  ${HISAT_map}/${outname}_HISAT2_unmapped.bam  -fq /dev/stdout | gzip >${HISAT_map}/${outname}_HISAT2_unmapped.fastq.gz
 
@@ -234,17 +234,17 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
     fi
     python ${dir_scripts}/bwa_unique_mismatch6.py ${bwa_map}/${outname}_bwa_mapped.sam ${bwa_map}/${outname}_bwa_unique_mis6_mapq0.sam 
     
-    samtools  view -bT ${genome_fasta} -o ${bwa_map}/${outname}_unmapped.nbam ${bwa_map}/${outname}_bwa_unique_mis6_mapq0.sam
-    samtools  sort ${bwa_map}/${outname}_unmapped.nbam -o ${bwa_map}/${outname}_unmapped.sort.bam
-    samtools  view -H ${bwa_map}/${outname}_unmapped.sort.bam > ${bwa_map}/${outname}_bwa.header
+    samtools  view --threads ${thread} -bT ${genome_fasta} -o ${bwa_map}/${outname}_unmapped.nbam ${bwa_map}/${outname}_bwa_unique_mis6_mapq0.sam
+    samtools  sort --threads ${thread} ${bwa_map}/${outname}_unmapped.nbam -o ${bwa_map}/${outname}_unmapped.sort.bam
+    samtools  view --threads ${thread} -H ${bwa_map}/${outname}_unmapped.sort.bam > ${bwa_map}/${outname}_bwa.header
     
     wait
     cat ${bwa_map}/${outname}_bwa.header ${HISAT_map}/${outname}_unique_mismatch2.sam > ${combine_bam}/${outname}_accepted_hits.nsam
-    samtools view -bT ${genome_fasta} -o  ${combine_bam}/${outname}_accepted_hits.nbam ${combine_bam}/${outname}_accepted_hits.nsam
-    samtools sort ${combine_bam}/${outname}_accepted_hits.nbam -o ${combine_bam}/${outname}_accepted_hits.sort.bam
+    samtools view --threads ${thread} -bT ${genome_fasta} -o  ${combine_bam}/${outname}_accepted_hits.nbam ${combine_bam}/${outname}_accepted_hits.nsam
+    samtools sort --threads ${thread} ${combine_bam}/${outname}_accepted_hits.nbam -o ${combine_bam}/${outname}_accepted_hits.sort.bam
 
-    samtools merge -f ${combine_bam}/${outname}_combine.bam ${combine_bam}/${outname}_accepted_hits.sort.bam ${bwa_map}/${outname}_unmapped.sort.bam
-    samtools index ${combine_bam}/${outname}_combine.bam
+    samtools merge --threads ${thread} -f ${combine_bam}/${outname}_combine.bam ${combine_bam}/${outname}_accepted_hits.sort.bam ${bwa_map}/${outname}_unmapped.sort.bam
+    samtools index -@ ${thread} ${combine_bam}/${outname}_combine.bam
 #    need_rm_intermediate_file_list=(${combine_bam}/${outname}_accepted_hits.nsam ${combine_bam}/${outname}_accepted_hits.nbam ${combine_bam}/${outname}_accepted_hits.sort.bam ${bwa_map}/${outname}_unmapped.nbam ${bwa_map}/${outname}_unmapped.nbam ${bwa_map}/${outname}_unmapped.sort.bam ${bwa_map}/${outname}_bwa_unique_mis6_mapq0.sam ${bwa_map}/${outname}_bwa_mapped.sam ${HISAT_map}/${outname}_HISAT2_mapped.sam ${HISAT_map}/${outname}_unique_mismatch2.sam ${HISAT_map}/${outname}_unmapped_1.fastq.gz ${HISAT_map}/${outname}_unmapped_2.fastq.gz ${HISAT_map}/${outname}_hisat2_unmap.readid ${HISAT_map}/${outname}_un_conc_2.fastq.gz ${HISAT_map}/${outname}_un_conc_1.fastq.gz)
 #    for need_rm_intermediate_file in ${need_rm_intermediate_file_list[@]}
 #    do
