@@ -169,7 +169,8 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
 
     if [ "$layout" == "paired" ];then
 	## remove rRNA
-	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq1  $fq2 > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
+	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq1  $fq2 > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 
+	#2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
 	samtools view -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
 	samtools sort -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
 	samtools fastq -1 ${rRNAdeplete_path}/${outname}_R1.fastq.gz -2 ${rRNAdeplete_path}/${outname}_R2.fastq.gz -s ${rRNAdeplete_path}/${outname}_singleton.fq ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
@@ -181,7 +182,8 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
         ### 1. HISAT2 2 mismatches mapping
         ##################need confirm: --rna-strandness RF update:###### Wed Sep 25 19:56:57 CST 2019 confirmed, 0.12 VS 0.88
         #hisat2  --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${dep_path}/${genome_build_version}/${genome_build_version}_annotation/ref_all_spsites.txt --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p 10 -x /picb/rnomics1/database/Human/${genome_build_version}/genome/${genome_build_version}_all -1  ${fq_path}/${outname}${fq_suffix_1}  -2 ${fq_path}/${outname}${fq_suffix_2}  --un-conc-gz ${HISAT_map}/${outname}_un_conc_%.fastq.gz -S ${HISAT_map}/${outname}_HISAT2_mapped.sam  2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log 
-        hisat2  --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x   ${genome_index_hisat2} -1  $fq1  -2 $fq2  --un-conc-gz ${HISAT_map}/${outname}_un_conc_%.fastq.gz -S ${HISAT_map}/${outname}_HISAT2_mapped.sam  2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log ###### Wed Nov 20 08:06:39 CST 2019 fzc
+        hisat2  --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x   ${genome_index_hisat2} -1  $fq1  -2 $fq2  --un-conc-gz ${HISAT_map}/${outname}_un_conc_%.fastq.gz -S ${HISAT_map}/${outname}_HISAT2_mapped.sam  
+	#2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log ###### Wed Nov 20 08:06:39 CST 2019 fzc
         
         samtools view -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag"}}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag"  }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
 
@@ -197,13 +199,15 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
         ### 2. BWA 6 mismatches mapping
         
         test -d $bwa_map||mkdir -p $bwa_map
-        bwa mem -t ${thread}  -A 1 -B 4  ${genome_index_bwa_mem}  ${HISAT_map}/${outname}_unmapped_1.fastq.gz  ${HISAT_map}/${outname}_unmapped_2.fastq.gz > ${bwa_map}/${outname}_bwa_mapped.sam 2>${bwa_map}/log_BWA_6mismatch_`date +%Y_%m_%d`.log
+        bwa mem -t ${thread}  -A 1 -B 4  ${genome_index_bwa_mem}  ${HISAT_map}/${outname}_unmapped_1.fastq.gz  ${HISAT_map}/${outname}_unmapped_2.fastq.gz > ${bwa_map}/${outname}_bwa_mapped.sam 
+	#2>${bwa_map}/log_BWA_6mismatch_`date +%Y_%m_%d`.log
 
 
     elif [ "$layout" == "single" ];then
 	## remove rRNA
 
-	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq0  > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
+	bwa  mem -t ${thread} ${rDNA_index_bwa_mem}  $fq0  > ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam 
+	#2>${rRNAdeplete_path}/log_BWA_rRNA_`date +%Y_%m_%d`.log
         samtools view -bh -f 4 ${rRNAdeplete_path}/${outname}_bwa_mapped_rRNA.sam > ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam
         samtools sort -n ${rRNAdeplete_path}/${outname}-rRNA_unmapped.bam  -o ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam
         samtools fastq  ${rRNAdeplete_path}/${outname}-rRNA_unmapped_sort.bam | gzip > ${rRNAdeplete_path}/${outname}.fastq.gz
@@ -215,7 +219,8 @@ HISAT2_2mismatch_following_BWA_6mismatch_mapping(){
 	## two round mapping
         #hisat2 --secondary --no-temp-splicesite --known-splicesite-infile ${dep_path}/${genome_build_version}/${genome_build_version}_annotation/ref_all_spsites.txt --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p 10 -x /picb/rnomics1/database/Human/${genome_build_version}/genome/${genome_build_version}_all -U ${fq_path}/${outname}.fastq.gz -S ${HISAT_map}/${outname}_HISAT2_mapped.sam 2>${log_path}/${genome_build_version}/bmc/HISAT2/log_hisat2_${outname}.log 
 
-        hisat2 --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x ${genome_index_hisat2} -U $fq0 -S ${HISAT_map}/${outname}_HISAT2_mapped.sam 2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log 
+        hisat2 --rna-strandness RF --no-mixed --secondary --no-temp-splicesite --known-splicesite-infile ${annotation_splice_sites} --no-softclip --score-min L,-16,0 --mp 7,7 --rfg 0,7 --rdg 0,7 --max-seeds 20 -k 10 --dta -t -p ${thread} -x ${genome_index_hisat2} -U $fq0 -S ${HISAT_map}/${outname}_HISAT2_mapped.sam 
+	#2>${HISAT_map}/log_HISAT2_2mismatch_${outname}_`date +%Y_%m_%d`.log 
 
         samtools view -h -F 4 ${HISAT_map}/${outname}_HISAT2_mapped.sam|awk 'BEGIN{FS="XM:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "XM"){split($2,a,"\t");if ( a[1] <= 2 ) print $0 } else print $0 " not have XM tag" }}'|awk 'BEGIN{FS="NH:i:"}{if($0 ~/^@/){print $0}else{if ($0 ~ "NH"){split($2,a,"\t");if ( a[1] == 1 ) print $0 } else print $0 " not have NH tag" }}' >${HISAT_map}/${outname}_unique_mismatch2.sam &
         samtools view -bS -f 4 -o ${HISAT_map}/${outname}_HISAT2_unmapped.bam ${HISAT_map}/${outname}_HISAT2_mapped.sam
