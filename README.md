@@ -111,9 +111,9 @@ COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -s "full_path_of_fastq" -
 `-h | --help | -help`: Print help information. <br />
 
 
-### PART 2: RNA-editing result summarize and visualization
-#### 1. RNA-editing result summarize
-COMMAND: `RADAR summarize_RNA_editing_events -i "outdir_of_PART1" -o "file_of_result" `
+### PART 2: RNA-editing result summarization and visualization
+#### 1. RNA-editing result summarization
+COMMAND: `RADAR RNA_editing_summarization -i "outdir_of_PART1" -o "file_of_result" `
 ##### Options
 `-i | --inputdir | -inputdir`: The directory of the PART1 read mapping and RNA-editing results. <br />
 `-o | --output | -output`: Full path of the output file for the Excel. <br />
