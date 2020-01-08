@@ -13,10 +13,10 @@ MYDIR=`dirname $0`
 function usage(){
     echo "USAGE: 
 	* PART 1 (Read mapping and RNA-editing calling): ./RADAR read_mapping_and_RNA_editing_calling -h
-	* PART 2 (RNA-editing visualization):
-		1) ./RADAR histogram -h 
-		2) ./RADAR Manhattan_plot -h
-
+	* PART 2 (RNA-editing result summarization and visualization):
+		1) ./RADAR RNA_editing_summarization -h
+		2) ./RADAR histogram -h 
+		3) ./RADAR Manhattan_plot -h
 Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
@@ -221,25 +221,27 @@ read_mapping_and_RNA_editing_calling(){
 	echo "NOTICE: RNA-editing calling is done."
 }
 
-preparation_for_plotting(){
+RNA_editing_summarization(){
 
 	#echo "summarize."
         if [[ $# -lt 1 ]];then
-                usage_preparation_for_plotting
+                usage_RNA_editing_summarization
                 exit 1
         fi
 	
-	GETOPT_ARGS=`getopt  -o i:h  -al inputdir:,help -- "$@"`
+	GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,help -- "$@"`
 	#echo ${GETOPT_ARGS}
         inputdir=""
+	output=""
         eval set -- "$GETOPT_ARGS"
         while [ -n "$1" ]
         do
                 case "$1" in
                         -i | --inputdir | -inputdir) inputdir=$2; shift 2;;
-                        -h|--help | -help) usage_preparation_for_plotting; exit 1;;
+                        -h|--help | -help) usage_RNA_editing_summarization; exit 1;;
+                        -o | --output | -output) output=$2; shift 2;;
                         --) break ;;
-                        *) echo $1,$2, usage_preparation_for_plotting; break ;;
+                        *) echo $1,$2, usage_RNA_editing_summarization; break ;;
                 esac
         done
 	if [[ -z "$inputdir"   ]];then
@@ -247,7 +249,7 @@ preparation_for_plotting(){
                 exit 1
         fi
 
-	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir}
+	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir} -o ${output}
 
 }
 
@@ -289,7 +291,7 @@ histogram(){
         fi
 	inputdir=` echo "${inputdir}" | sed 's/\/$//g' `
 	echo "NOTICE: Start ploting histogram."
-	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir}
+	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir} -o ""
 	Rscript ${MYDIR}/src/plot_barplot_variant_number-v2.R ${inputdir} ${output} ${outname_of_replicates}
 	echo "NOTICE: Histogram is done." 
 }
@@ -405,16 +407,15 @@ usage_read_mapping_and_RNA_editing_calling(){
         -o | --outdir | -outdir: Output directory of the results.
         -t | --thread | -thread: Maximum threads used for computation.
         -h | --help | -help: Print help information.
-
 Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 
-usage_preparation_for_plotting(){
-	echo  "USAGE: ./RADAR preparation_for_plotting
+usage_RNA_editing_summarization(){
+	echo  "USAGE: ./RADAR RNA_editing_summarization
         -i | --inputdir | -inputdir: The directory of the PART1 RNA-editing results.
+        -o | --output | -output: Full path of the output file for the Tab-seprated file.
         -h | --help | -help: Print help information.
-
 Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
@@ -424,7 +425,6 @@ usage_histogram(){
         -n | --outname_of_replicates | -outname_of_replicates: The outnames of PART1 RNA-editing results for multiple replicates from the same treatment. The separator between outnames should be comma, for example, \"s1_rep1,s1_rep2,s1_rep3\".
         -o | --output | -output: Full path of the pdf file for the histogram.
         -h | --help | -help: Print help information.
-
 Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
@@ -437,7 +437,6 @@ usage_Manhattan_plot(){
 	-c | --color_of_samples | -color_of_samples: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma. For example, \"#919191,#919191,#919191,#FF3F00,#FF3F00,#FF3F00\". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes.
         -o | --output | -output: Full path of the pdf file for the Manhattan plot.
         -h | --help | -help: Print help information.
-
 Detail information was available at https://github.com/YangLab/RADAR.
 	"
 }
@@ -445,3 +444,5 @@ Detail information was available at https://github.com/YangLab/RADAR.
 
 
 "$@"
+
+
