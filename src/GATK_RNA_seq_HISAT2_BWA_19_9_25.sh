@@ -365,15 +365,16 @@ awk -F '\t' -v totalBaseCount=${total_base_number} '{split($8,a,";");for(col in 
 
 preparation_for_plotting(){
 	echo "Preparation for histogram."
-        GETOPT_ARGS=`getopt  -o i:h  -al inputdir:,help -- "$@"`
+        GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,help -- "$@"`
 	#echo ${GETOPT_ARGS}
         inputdir=""
-
+	output=""
         eval set -- "$GETOPT_ARGS"
         while [ -n "$1" ]
         do
                 case "$1" in
                         -i|--inputdir | -inputdir) inputdir=$2; shift 2;;
+			-o | --output | -output) output=$2; shift 2;;
                         -h|--help | -help) usage_preparation_for_plotting; exit 1;;
                         --) break ;;
                         *) echo $1,$2, usage_preparation_for_plotting; break ;;
@@ -387,6 +388,9 @@ outnames=` ls ${inputdir}/*.vcf | grep -v 'result_merged_twelve_types_RNA_editin
 tmp_file_12_kinds_variant=${inputdir}/tmp_summarized_number_of_twelve_types_RNA_editing_events_of_all_samples.txt
 true > ${tmp_file_12_kinds_variant}
 final_RNA_variant_result_stats_file=${inputdir}/result_summarized_number_of_twelve_types_RNA_editing_events_of_all_samples.txt
+if [[ -n "$output"   ]];then
+        final_RNA_variant_result_stats_file=${output}
+fi
 #merged_vcf=${inputdir}/result_merged_twelve_types_RNA_editing_events_of_all_samples.vcf
 #true > ${merged_vcf}
 
