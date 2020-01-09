@@ -1,7 +1,7 @@
 library("ggplot2")
 library("dplyr")
 #source('/Users/user/Documents/workspace/R/RADAR_plot/Function/fun_Manhattan_plot.R')
-source('./src/plot_fun_Manhattan_plot.R')
+#source('./src/plot_fun_Manhattan_plot.R')
 
 args<-commandArgs(T)
 #args=c('/Users/user/Documents/workspace/R/RADAR_plot/tmp_merged_samples.vcf','/Users/user/Documents/workspace/R/RADAR_plot/tmp-mahattan.pdf',"20190906_1,20190906_2,20190906_4","#919191,#FF3F00,#FF3F00")
@@ -12,6 +12,9 @@ input_df_manhattan=args[1]
 output_file=args[2]
 outname_of_samples=args[3]
 color_of_samples=args[4]
+path=args[5]
+source(paste(path,'/src/plot_fun_Manhattan_plot.R',sep=""))
+
 df_manhattan <- read.table(input_df_manhattan, header=FALSE)
 
 ###################### data format
