@@ -438,7 +438,7 @@ usage_Manhattan_plot(){
 	-c | --color_of_samples | -color_of_samples: Color of hex RGB format for the dot of samples in the plot. Colors should be within double quotations and seperated by comma. For example, \"#919191,#919191,#919191,#FF3F00,#FF3F00,#FF3F00\". For multiple samples, provide matched colors and samples; for one sample, provide two colors to distinguish adjacent chromosomes.
         -o | --output | -output: Full path of the pdf file for the Manhattan plot.
         -h | --help | -help: Print help information.
-Detail information was available at https://github.com/YangLab/RADAR.
+Detail information is available at https://github.com/YangLab/RADAR.
 	"
 }
 
