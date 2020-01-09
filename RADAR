@@ -386,7 +386,7 @@ Manhattan_plot(){
 	done <<< "${tmp_outname_of_samples}"
 
 	if [[ -s "$vcf_merged_samples"   ]];then	
-		Rscript ${MYDIR}/src/plot_fun_Manhattan_plot.R ${vcf_merged_samples} ${output} ${input_outname_of_samples} ${input_color_of_samples}
+		Rscript ${MYDIR}/src/plot_Manhattan_plot.R ${vcf_merged_samples} ${output} ${input_outname_of_samples} ${input_color_of_samples} ${MYDIR}
 	else
 		echo "There is no site of "${RNA_editing_type}" RNA-editing type in the results."
 	fi
