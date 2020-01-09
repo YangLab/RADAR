@@ -250,7 +250,8 @@ RNA_editing_summarization(){
         fi
 
 	bash ${MYDIR}/src/GATK_RNA_seq_HISAT2_BWA_19_9_25.sh preparation_for_plotting -i ${inputdir} -o ${output}
-
+	echo "RNA-editing summarization done."
+	
 }
 
 histogram(){
