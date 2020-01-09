@@ -364,7 +364,7 @@ awk -F '\t' -v totalBaseCount=${total_base_number} '{split($8,a,";");for(col in 
 }
 
 preparation_for_plotting(){
-	echo "Preparation for histogram."
+	#echo "Preparation for histogram."
         GETOPT_ARGS=`getopt  -o i:o:h  -al inputdir:,output:,help -- "$@"`
 	#echo ${GETOPT_ARGS}
         inputdir=""
