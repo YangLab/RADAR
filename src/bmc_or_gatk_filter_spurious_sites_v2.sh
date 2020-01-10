@@ -854,9 +854,10 @@ distinguish_plus_minus_main_annotation_version(){
     local input_result=$input_file
     local out_aviput="${tmp_work_path}/${outname}${inter_name}_recal"
     #in_bed="${dep_path}/${ref_genome}/ref_all_6.bed"
-    out_bed_minus=${in_bed}.minus.bed
+    out_bed_minus=`echo "${in_bed}" | sed 's/.bed$/_minus.bed/g' `
 	#"${dep_path}/${ref_genome}/ref_all_6_minus.bed"
-    out_bed_plus=${in_bed}.plus.bed
+    #out_bed_plus=${in_bed}.plus.bed
+    out_bed_plus=`echo "${in_bed}" |  sed 's/.bed$/_plus.bed/g' `
 	#"${dep_path}/${ref_genome}/ref_all_6_plus.bed"
     #out_1baseBed="${tmp_work_path}/${outname}${inter_name}_bed"
     #out_1baseBed_bothStrand="${tmp_work_path}/${outname}${inter_name}_bed_plus_minus"
