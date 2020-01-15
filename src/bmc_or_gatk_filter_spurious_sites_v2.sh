@@ -327,12 +327,12 @@ COMMENT
     out_final_part_name=${inter_name}"_annotationStrand" 
     input_result="${tmp_work_path}/${outname}${inter_name}${suffix}"
     output_result="${tmp_work_path}/${outname}${out_final_part_name}${suffix}"
-    if [[  "$stranded" == true   ]];then
+    #if [[  "$stranded" == true   ]];then
     	echo "distinguish_plus_minus_main_annotation_version $method $input_result $output_result"
     	distinguish_plus_minus_main_annotation_version $method $input_result $output_result ${annotation_gene_transcribed_strands}
-    else
-	cp ${input_result} ${output_result}
-    fi
+    #else
+    #	cp ${input_result} ${output_result}
+    #fi
 
     Alu_final_result="${output_result}"
 
@@ -413,12 +413,12 @@ COMMENT
     out_final_part_name=${inter_name}"_annotationStrand" 
     input_result="${tmp_work_path}/${outname}${inter_name}${suffix}"
     output_result="${tmp_work_path}/${outname}${out_final_part_name}${suffix}"
-    if [[  "$stranded" == true   ]];then
+    #if [[  "$stranded" == true   ]];then
     	echo "distinguish_plus_minus_main_annotation_version $method $input_result $output_result"
     	distinguish_plus_minus_main_annotation_version $method $input_result $output_result ${annotation_gene_transcribed_strands}
-    else
-        cp ${input_result} ${output_result}
-    fi    
+    #else
+    #    cp ${input_result} ${output_result}
+    #fi    
     ################################split_non-alu_to_nonAlu_nonRepeat#################################
 
     #_HaplotypeCaller_Variants_2pass_SNP_deAllSNP_dbSNP_b151_1000genomes_EVS_hits10_non-Alu_deSimpleRepeat_intronic4bp_deHomopolymer_blat_annotationStrand.
