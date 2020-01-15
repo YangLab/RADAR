@@ -104,7 +104,7 @@ COMMAND: `./RADAR read_mapping_and_RNA_editing_calling -s "full_path_of_fastq" -
 ##### Options
 `-s | --single | -single`: Fasta file for the single-end RNA-seq data. <br />
 `-1 | --fq1 | -fq1`  and  `-2 | --fq2 | -fq2`: Fasta file for the paired-end RNA-seq data. <br />
-`--stranded | -stranded`: If the RNA-seq is stranded or not. value: true or false. <br />
+`--rna-strandness | -rna-strandness`: The strand-specific information used for HISAT2 mapping. Detailed descriptions of this option was available in [HISAT2 manual](https://ccb.jhu.edu/software/hisat2/manual.shtml). <br />
 `-n | --outname | -outname`: The prefix of file name for the RNA-editing results. Three result files will be created under the directory of **outdir**, including "**outname**_Alu.vcf", "**outname**_Repetitive_non_Alu.vcf", "**outname**_Non_repetitive.vcf".<br />
 `-o | --outdir | -outdir`: Output directory of the results. <br />
 `-t | --thread | -thread`: Maximum threads used for computation. <br />
