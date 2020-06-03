@@ -136,8 +136,6 @@ COMMAND: `./RADAR Manhattan_plot -i "outdir_of_PART1" --RNA_editing_type "RNA_ed
 `-o | --output | -output`: Full path of the pdf file for the Manhattan plot.  <br />
 `-h | --help | -help`: Print help information.  <br />
 
-## Citation
-Wang X#, Ding C#, Yu W#, Xiong YC#, He S#, Yang B#, Wang Y, Li J, Lu Z, Zhu W, Wu J, Wei J, Huang X, Liu Z*, Yang L* and Chen J*. Cas12a base editors induce efficient and specific editing with low DNA damage response. in revision.
 
 ## License
 Copyright (C) 2020 YangLab. [Licensed GPLv3](https://github.com/YangLab/RADAR/blob/master/LICENSE) for open source use or contact YangLab (yanglab@@picb.ac.cn) for commercial use.
